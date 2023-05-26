@@ -1,0 +1,32 @@
+import telebot
+from PIL import Image, ImageEnhance
+import io
+
+# Replace 'YOUR_TELEGRAM_BOT_TOKEN' with your actual Telegram bot token
+bot = telebot.TeleBot('YOUR_TELEGRAM_BOT_TOKEN')
+
+@bot.message_handler(content_types=['photo'])
+def enhance_photo(message):
+    # Get the photo from the message
+    photo = message.photo[-1]
+
+    # Download the photo
+    file_info = bot.get_file(photo.file_id)
+    downloaded_file = bot.download_file(file_info.file_path)
+
+    # Open the photo using PIL
+    image = Image.open(io.BytesIO(downloaded_file))
+
+    # Enhance the photo (you can adjust the enhancement parameters as per your requirements)
+    enhanced_image = ImageEnhance.Sharpness(image).enhance(1.5)
+
+    # Save the enhanced image to a byte stream
+    enhanced_image_stream = io.BytesIO()
+    enhanced_image.save(enhanced_image_stream, format='JPEG')
+    enhanced_image_stream.seek(0)
+
+    # Send the enhanced image back to the channel
+    bot.send_photo(message.chat.id, enhanced_image_stream)
+
+# Start the bot
+bot.polling()
